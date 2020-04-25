@@ -2,6 +2,7 @@ var express = require('express');
 var app = express();
 var http = require('http').createServer(app);
 var io = require('socket.io')(http);
+var port = process.env.PORT || 3000
 
 app.get('/',function(req, res)
 {
@@ -10,8 +11,9 @@ app.get('/',function(req, res)
 
 app.use('/client',express.static(__dirname + '/client'));
 
-http.listen(2000);
-console.log("Server started.");
+http.listen(port, function(){
+    console.log('Server is listening on port: '+port);
+});
 
 var socket_list = {};
 var player_list = {};
