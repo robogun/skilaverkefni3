@@ -1,0 +1,76 @@
+<canvas id="ctx" width="800" height="800" style="border:1px solid #000000;"></canvas>
+
+<script type="text/javascript" src="/socket.io/socket.io.js"></script>
+<script>
+    var gamespeed = 10;
+    
+    var ctx = document.getElementById("ctx").getContext("2d");
+    ctx.font = '30px Arial';
+	
+    var socket = io(); // Tengjumst io (client-to-server)
+		
+    socket.on('newPositions',function(data)
+    {
+        ctx.clearRect(0,0,800,800);
+        for(var i = 0 ; i < data.length; i++)
+            ctx.fillText(data[i].number,data[i].x,data[i].y);
+    });
+
+    // WASD eða örvatakkar fyrir stjórn
+
+    function gameloop ()
+    {
+        // let player_tex = new Image();
+        // player_tex.src = 'images/player.png';
+
+        // ctx.drawImage(player_tex, 0, 0); // TEIKNA SPILARA
+
+        document.onkeydown = function(event)
+        {
+            if(event.keyCode === 87)
+                socket.emit('keyPress',{inputId:'Up',state:true});
+            else if(event.keyCode === 83)
+                socket.emit('keyPress',{inputId:'Down',state:true});
+            else if(event.keyCode === 65)
+                socket.emit('keyPress',{inputId:'Left',state:true});
+            else if(event.keyCode === 68)
+                socket.emit('keyPress',{inputId:'Right',state:true});	
+        }
+
+        document.onkeyup = function(event)
+        {
+            if(event.keyCode === 87)
+                socket.emit('keyPress',{inputId:'Up',state:false});
+            else if(event.keyCode === 83)
+                socket.emit('keyPress',{inputId:'Down',state:false});
+            else if(event.keyCode === 65)
+                socket.emit('keyPress',{inputId:'Left',state:false});
+            else if(event.keyCode === 68)
+                socket.emit('keyPress',{inputId:'Right',state:false});
+        }
+
+        setInterval(function(player_list, socket_list)
+        { 
+            var pack = [];
+            for(var i in player_list){
+                var player = player_list[i];
+                player.updatePosition();
+                pack.push({
+                    x:player.x,
+                    y:player.y,
+                    number:player.number
+                });
+            }
+
+            for(var i in socket_list)
+            {
+                var socket = socket_list[i];
+                socket.emit('newPositions',pack);
+            }
+        }
+        ,1000/30);
+    }
+    
+    var game = setInterval(gameloop, gamespeed);
+
+</script>
